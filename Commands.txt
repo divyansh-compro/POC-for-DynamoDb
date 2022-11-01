@@ -1,0 +1,94 @@
+--------------------------COMMANDS--------------------------
+
+----To start sever----
+java -D"java.library.path"=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb
+
+
+----To list Tables---
+aws dynamodb list-tables --endpoint-url http://localhost:8000
+
+
+----To create table---
+aws dynamodb create-table \
+    --table-name Music \
+    --attribute-definitions \
+        AttributeName=Artist,AttributeType=S \
+        AttributeName=SongTitle,AttributeType=S \
+    --key-schema \
+        AttributeName=Artist,KeyType=HASH \
+        AttributeName=SongTitle,KeyType=RANGE \
+    --provisioned-throughput \
+        ReadCapacityUnits=5,WriteCapacityUnits=5 \
+    --table-class STANDARD
+    --endpoint-url http://localhost:8000
+
+
+//----To check table status----//
+aws dynamodb describe-table --table-name Music | grep TableStatus --endpoint-url http://localhost:8000
+
+
+----To add items to table----
+
+aws dynamodb put-item \
+    --table-name Music \
+    --item \
+        '{"Artist": {"S": "No One You Know"}, "SongTitle": {"S": "Call Me Today"}, "AlbumTitle": {"S": "Somewhat Famous"}}' \
+    --return-consumed-capacity TOTAL --endpoint-url http://localhost:8000
+
+
+aws dynamodb put-item \
+    --table-name Music \
+    --item '{
+        "Artist": {"S": "Acme Band"},
+        "SongTitle": {"S": "Happy Day"},
+        "AlbumTitle": {"S": "Songs About Life"} }' \
+    --return-consumed-capacity TOTAL --endpoint-url http://localhost:8000
+
+aws dynamodb put-item \
+--table-name Music \
+--item \
+    '{"Artist": {"S": "Acme Band"}, "SongTitle": {"S": "PartiQL Rocks"}, "AlbumTitle": {"S": "Another Album Title"}, "Awards": {"N": "8"} }' --endpoint-url http://localhost:8000
+
+
+//----To read data from table----//
+aws dynamodb get-item --consistent-read \
+    --table-name Music \
+    --key '{ "Artist": {"S": "Acme Band"}, "SongTitle": {"S": "Happy Day"}}' --endpoint-url http://localhost:8000
+
+
+//----To update data from table----//
+aws dynamodb update-item \
+    --table-name Music \
+    --key '{ "Artist": {"S": "Acme Band"}, "SongTitle": {"S": "Happy Day"}}' \
+    --update-expression "SET AlbumTitle = :newval" \
+    --expression-attribute-values '{":newval":{"S":"Updated Album Title"}}' \
+    --return-values ALL_NEW --endpoint-url http://localhost:8000
+
+
+//----To query(print) data from table----//
+aws dynamodb query \
+    --table-name Music \
+    --key-condition-expression "Artist = :name" \
+    --expression-attribute-values  '{":name":{"S":"Acme Band"}}' --endpoint-url http://localhost:8000
+
+
+//----To create GSI----//
+aws dynamodb update-table \
+    --table-name Music \
+    --attribute-definitions AttributeName=AlbumTitle,AttributeType=S \
+    --global-secondary-index-updates \
+        "[{\"Create\":{\"IndexName\": \"AlbumTitle-index\",\"KeySchema\":[{\"AttributeName\":\"AlbumTitle\",\"KeyType\":\"HASH\"}], \
+        \"ProvisionedThroughput\": {\"ReadCapacityUnits\": 10, \"WriteCapacityUnits\": 5      },\"Projection\":{\"ProjectionType\":\"ALL\"}}}]" --endpoint-url http://localhost:8000
+
+
+//----Query GSI----//
+aws dynamodb query \
+    --table-name Music \
+    --index-name AlbumTitle-index \
+    --key-condition-expression "AlbumTitle = :name" \
+    --expression-attribute-values  '{":name":{"S":"Somewhat Famous"}}' --endpoint-url http://localhost:8000
+
+
+//----Delete the table----//
+aws dynamodb delete-table --table-name Music
+
