@@ -11,8 +11,8 @@ const deleteItem = async () => {
   const params = {
     TableName: "Music",
     Key: {
-      Artist: "New artist1",
-      SongTitle: "Latest song",
+      Artist: "Artist9",
+      SongTitle: "9",
     },
   };
   try {

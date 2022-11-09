@@ -18,9 +18,117 @@ aws dynamodb create-table \
         AttributeName=Artist,KeyType=HASH \
         AttributeName=SongTitle,KeyType=RANGE \
     --provisioned-throughput \
-        ReadCapacityUnits=5,WriteCapacityUnits=5 \
+        ReadCapacityUnits=6,WriteCapacityUnits=6 \
     --table-class STANDARD
     --endpoint-url http://localhost:8000
+
+aws dynamodb create-table \
+    --table-name Students \
+    --attribute-definitions \
+        AttributeName=Id,AttributeType=N \
+        AttributeName=Name,AttributeType=S \
+        AttributeName=Phone,AttributeType=S \
+    --key-schema \
+        AttributeName=Id,KeyType=HASH \
+        AttributeName=Name,KeyType=RANGE \
+    --provisioned-throughput \
+        ReadCapacityUnits=6,WriteCapacityUnits=6 \
+    --table-class STANDARD
+    --endpoint-url http://localhost:8000
+
+aws dynamodb create-table \ --table-name Students \ --attribute-definitions \ AttributeName=Id,AttributeType=N \ AttributeName=Name,AttributeType=S \ AttributeName=Phone,AttributeType=S \ --key-schema \  AttributeName=Id,KeyType=HASH \ AttributeName=Name,KeyType=RANGE \ --provisioned-throughput \ ReadCapacityUnits=6,WriteCapacityUnits=6 \ --table-class STANDARD --endpoint-url http://localhost:8000
+
+
+aws dynamodb create-table \
+    --table-name UserOrdersTable \
+    --attribute-definitions '[
+      {
+          "AttributeName": "Username",
+          "AttributeType": "S"
+      },
+      {
+          "AttributeName": "OrderId",
+          "AttributeType": "S"
+      },
+      {
+          "AttributeName": "Amount",
+          "AttributeType": "N"
+      }
+    ]' \
+    --key-schema '[
+      {
+          "AttributeName": "Username",
+          "KeyType": "HASH"
+      },
+      {
+          "AttributeName": "OrderId",
+          "KeyType": "RANGE"
+      }
+    ]' \
+    --local-secondary-indexes '[
+      {
+          "IndexName": "UserAmountIndex",
+          "KeySchema": [
+              {
+                  "AttributeName": "Username",
+                  "KeyType": "HASH"
+              },
+              {
+                  "AttributeName": "Amount",
+                  "KeyType": "RANGE"
+              }
+          ]
+      }
+    ]' \
+    --provisioned-throughput '{
+      "ReadCapacityUnits": 1,
+      "WriteCapacityUnits": 1
+    }' \ --endpoint-url http://localhost:8000
+ 
+
+
+
+//----------------To update table------------------//
+aws dynamodb update-table \
+    --table-name UserOrdersTable \
+    --attribute-definitions '[
+      {
+          "AttributeName": "ReturnDate",
+          "AttributeType": "S"
+      },
+      {
+          "AttributeName": "OrderId",
+          "AttributeType": "S"
+      }
+    ]' \
+    --global-secondary-index-updates '[
+        {
+            "Create": {
+                "IndexName": "ReturnDateOrderIdIndex",
+                "KeySchema": [
+                    {
+                        "AttributeName": "ReturnDate",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "OrderId",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "Projection": {
+                    "ProjectionType": "ALL"
+                },
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 1,
+                    "WriteCapacityUnits": 1
+                }
+            }
+        }
+    ]' \
+    $LOCAL
+
+
+
 
 
 //----To check table status----//
